@@ -1,27 +1,50 @@
+# 🚀 Frappe Framework & ERPNext v13 Installation Guide (Ubuntu 22.04 WSL)
 
-# Frappe ERPNext Installation Guide (WSL Ubuntu 22.04)
+A complete step-by-step guide to install **Frappe Framework v13** and **ERPNext v13** on **Ubuntu 22.04 (WSL2)** from scratch.
 
-A complete step-by-step guide to install **Frappe Framework v13** and **ERPNext v13** on **Ubuntu 22.04 (WSL2)** with troubleshooting for the most common installation issues.
+This guide also includes solutions to common installation errors encountered during setup.
 
 ---
 
-## 📌 Environment
+# 📋 System Requirements
 
-| Component | Version |
-|-----------|---------|
-| Ubuntu | 22.04 LTS (WSL2) |
+| Software | Version |
+|----------|----------|
+| Windows | Windows 10/11 |
+| WSL | Ubuntu 22.04 LTS |
 | Python | 3.10 |
+| NodeJS | 18.x |
 | MariaDB | 10.6 |
-| Node.js | 18.x |
+| Redis | Latest |
+| Yarn | Latest |
 | Bench | 5.x |
 | Frappe | 13.58.22 |
 | ERPNext | 13.55.2 |
 
 ---
 
-# Installation Steps
+# Step 1 : Install WSL
 
-## 1. Update Ubuntu
+Open **Command Prompt (Administrator)**
+
+```cmd
+wsl --install -d Ubuntu-22.04
+```
+
+Restart the system.
+
+Open Ubuntu.
+
+Create
+
+```
+Username:
+Password:
+```
+
+---
+
+# Step 2 : Update Ubuntu
 
 ```bash
 sudo apt update
@@ -30,35 +53,25 @@ sudo apt upgrade -y
 
 ---
 
-## 2. Install Required Packages
+# Step 3 : Install Required Dependencies
 
 ```bash
-sudo apt install -y \
-git \
-python3-dev \
-python3-pip \
-python3-venv \
-python3-setuptools \
-python3-wheel \
-redis-server \
-mariadb-server \
-mariadb-client \
-curl \
-wkhtmltopdf \
-xvfb \
-software-properties-common
+sudo apt install git python3-dev python3-pip python3-setuptools python3-wheel python3-venv redis-server mariadb-server mariadb-client curl xvfb wkhtmltopdf software-properties-common -y
 ```
 
 ---
 
-## 3. Install NodeJS
+# Step 4 : Install NodeJS
 
 ```bash
 curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
+```
+
+```bash
 sudo apt install nodejs -y
 ```
 
-Verify:
+Verify
 
 ```bash
 node -v
@@ -67,13 +80,13 @@ npm -v
 
 ---
 
-## 4. Install Yarn
+# Step 5 : Install Yarn
 
 ```bash
 sudo npm install -g yarn
 ```
 
-Verify:
+Verify
 
 ```bash
 yarn -v
@@ -81,7 +94,7 @@ yarn -v
 
 ---
 
-## 5. Install Bench
+# Step 6 : Install Bench
 
 ```bash
 sudo pip3 install frappe-bench
@@ -95,7 +108,7 @@ bench --version
 
 ---
 
-## 6. Configure MariaDB
+# Step 7 : Secure MariaDB
 
 Run
 
@@ -103,18 +116,21 @@ Run
 sudo mysql_secure_installation
 ```
 
-Recommended options
+Select
 
 ```
-Remove anonymous users?          Y
-Disallow root login remotely?    Y
-Remove test database?            Y
-Reload privilege tables?         Y
+Remove anonymous users? Y
+
+Disallow root login remotely? Y
+
+Remove test database? Y
+
+Reload privilege tables? Y
 ```
 
 ---
 
-## 7. Configure Character Set
+# Step 8 : Configure MariaDB
 
 Open
 
@@ -122,13 +138,33 @@ Open
 sudo nano /etc/mysql/mariadb.conf.d/50-server.cnf
 ```
 
-Inside `[mysqld]` add
+Locate
+
+```ini
+[mysqld]
+```
+
+Add
 
 ```ini
 character-set-client-handshake = FALSE
 character-set-server = utf8mb4
 collation-server = utf8mb4_unicode_ci
 skip-character-set-client-handshake
+```
+
+> **Important:** Remove any duplicate entries such as:
+
+```ini
+collation-server = utf8mb4_general_ci
+```
+
+Save
+
+```
+CTRL + O
+ENTER
+CTRL + X
 ```
 
 Restart MariaDB
@@ -139,52 +175,79 @@ sudo systemctl restart mariadb
 
 Verify
 
+```bash
+mysql -u root -p
+```
+
+Run
+
 ```sql
 SHOW VARIABLES LIKE 'collation_server';
 ```
 
-Expected output
+Expected Output
 
 ```
 utf8mb4_unicode_ci
 ```
 
+Exit
+
+```sql
+EXIT;
+```
+
 ---
 
-## 8. Initialize Bench
+# Step 9 : Create Bench
+
+Move to Home Directory
 
 ```bash
 cd ~
+```
 
+Create Bench
+
+```bash
 bench init frappe-bench --frappe-branch version-13
+```
 
+Go inside
+
+```bash
 cd frappe-bench
 ```
 
 ---
 
-## 9. Create Site
+# Step 10 : Create Site
 
 ```bash
 bench new-site site.local
 ```
 
-Enter
+Provide
 
-- MariaDB root password
-- Administrator password
+```
+MySQL Root Password
+
+Administrator Password
+```
 
 ---
 
-## 10. Install ERPNext
-
-Download ERPNext
+# Step 11 : Download ERPNext
 
 ```bash
 bench get-app erpnext --branch version-13
 ```
 
-Install ERPNext
+Skip this command if ERPNext already exists.
+
+---
+
+# Step 12 : Install ERPNext
 
 ```bash
 bench --site site.local install-app erpnext
@@ -192,14 +255,21 @@ bench --site site.local install-app erpnext
 
 ---
 
-## 11. Start Development Server
+# Step 13 : Set Default Site
 
 ```bash
 bench use site.local
+```
+
+---
+
+# Step 14 : Start Bench
+
+```bash
 bench start
 ```
 
-Open
+Open Browser
 
 ```
 http://127.0.0.1:8000
@@ -207,24 +277,70 @@ http://127.0.0.1:8000
 
 ---
 
-# Troubleshooting
+# Useful Commands
 
-## MariaDB Collation Error
+Check Bench Version
+
+```bash
+bench version
+```
+
+List Installed Apps
+
+```bash
+bench --site site.local list-apps
+```
+
+Run Migration
+
+```bash
+bench --site site.local migrate
+```
+
+Restart Bench
+
+```bash
+bench restart
+```
+
+Stop Bench
+
+```
+CTRL + C
+```
+
+Drop Site
+
+```bash
+bench drop-site site.local --force
+```
+
+---
+
+# Common Errors & Solutions
+
+---
+
+## 1. MariaDB Collation Error
+
+### Error
 
 ```
 Expected utf8mb4_unicode_ci
 Found utf8mb4_general_ci
 ```
 
+### Cause
+
+Duplicate entries inside
+
+```
+50-server.cnf
+```
+
 ### Solution
 
-Remove duplicate entries from
-
-```
-/etc/mysql/mariadb.conf.d/50-server.cnf
-```
-
-Ensure only this exists
+Keep only
 
 ```ini
 collation-server = utf8mb4_unicode_ci
@@ -238,65 +354,54 @@ sudo systemctl restart mariadb
 
 ---
 
-## pkg_resources Error
+## 2. pkg_resources Error
+
+### Error
 
 ```
-ModuleNotFoundError: No module named 'pkg_resources'
+ModuleNotFoundError:
+pkg_resources
 ```
 
 ### Cause
 
-Newer versions of **setuptools** are incompatible with Frappe v13.
+Latest setuptools version is incompatible with Frappe v13.
 
-### Fix
+### Solution
+
+Activate Virtual Environment
 
 ```bash
 source env/bin/activate
+```
 
+Remove setuptools
+
+```bash
 pip uninstall setuptools
+```
 
+Install Compatible Version
+
+```bash
 pip install setuptools==70.0.0
+```
 
+Verify
+
+```bash
 python -c "import pkg_resources"
+```
 
+Deactivate
+
+```bash
 deactivate
 ```
 
 ---
 
-## Duplicate Entry Error
-
-```
-Duplicate entry 'Accounts'
-```
-
-### Cause
-
-Installation stopped midway.
-
-### Solution
-
-Drop the site
-
-```bash
-bench drop-site site.local --force
-```
-
-Delete
-
-```bash
-rm -rf sites/site.local
-```
-
-Recreate
-
-```bash
-bench new-site site.local
-```
-
----
-
-## Access Denied (MariaDB)
+## 3. Access Denied
 
 ```
 Access denied for user 'root'@'localhost'
@@ -312,61 +417,127 @@ Reset password if required.
 
 ---
 
-## Frappe Not Found
+## 4. Duplicate Entry
 
 ```
-No module named frappe
+Duplicate entry 'Accounts'
 ```
 
-Create the bench inside
+### Cause
+
+Installation stopped midway.
+
+### Solution
+
+```bash
+bench drop-site site.local --force
+
+rm -rf sites/site.local
+
+bench new-site site.local
+```
+
+---
+
+## 5. No Module Named frappe
+
+### Cause
+
+Bench created incorrectly.
+
+### Solution
+
+Create bench inside
 
 ```
 ~/frappe-bench
 ```
 
-Do **NOT** create it inside
+NOT
 
 ```
-/mnt/c/
+/mnt/c/Users/...
 ```
 
 ---
 
-# Useful Commands
+## 6. Site Not Found
+
+```
+127.0.0.1 does not exist
+```
+
+### Solution
+
+```bash
+bench use site.local
+
+bench start
+```
+
+---
+
+# Verify Installation
+
+Run
 
 ```bash
 bench version
 ```
 
-```bash
-bench start
+Expected
+
+```
+erpnext 13.55.2
+frappe 13.58.22
 ```
 
-```bash
-bench restart
-```
-
-```bash
-bench migrate
-```
+List Apps
 
 ```bash
 bench --site site.local list-apps
 ```
 
-```bash
-bench drop-site site.local --force
+Expected
+
+```
+frappe
+erpnext
 ```
 
 ---
 
-# Lessons Learned
+# Project Structure
 
-- Always create the bench inside the Linux home directory (`~/frappe-bench`).
-- Configure MariaDB before creating the site.
-- Verify `utf8mb4_unicode_ci` before running `bench new-site`.
-- Use a compatible `setuptools` version for Frappe v13.
-- If site creation fails midway, recreate the site instead of continuing with the broken one.
+```
+frappe-bench
+│
+├── apps
+│   ├── frappe
+│   └── erpnext
+│
+├── config
+│
+├── env
+│
+├── logs
+│
+├── sites
+│   ├── common_site_config.json
+│   └── site.local
+│
+└── Procfile
+```
+
+---
+
+# Best Practices
+
+- Always install Bench inside the Linux home directory (`~/frappe-bench`).
+- Verify MariaDB collation before creating the site.
+- Use Ubuntu 22.04 with Python 3.10 for Frappe v13.
+- Do **not** manually install `frappe` after `bench new-site`; install **ERPNext** instead.
+- If installation fails midway, drop the site and recreate it.
 
 ---
 
@@ -384,8 +555,10 @@ bench drop-site site.local --force
 
 ---
 
-## Author
+# Author
 
 **Prateek Basu**
 
 GitHub: https://github.com/Prateek200627
+
+If this guide helped you, consider giving the repository a ⭐.
